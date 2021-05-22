@@ -15,8 +15,8 @@
 //
 #import <UIKit/UIKit.h>
 
-//! Project version number for RIBs.
-FOUNDATION_EXPORT double RIBsVersionNumber;
+//! Project version number for ModernRIBs.
+FOUNDATION_EXPORT double ModernRIBsVersionNumber;
 
-//! Project version string for RIBs.
-FOUNDATION_EXPORT const unsigned char RIBsVersionString[];
+//! Project version string for ModernRIBs.
+FOUNDATION_EXPORT const unsigned char ModernRIBsVersionString[];

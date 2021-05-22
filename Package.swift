@@ -2,26 +2,22 @@
 import PackageDescription
 
 let package = Package(
-    name: "RIBs",
+    name: "ModernRIBs",
     platforms: [
         .iOS(.v9),
     ],
     products: [
-        .library(name: "RIBs", targets: ["RIBs"]),
-    ],
-    dependencies: [
-        .package(url: "https://github.com/ReactiveX/RxSwift", from: "6.0.0"),
+        .library(name: "ModernRIBs", targets: ["ModernRIBs"]),
     ],
     targets: [
         .target(
-            name: "RIBs",
-            dependencies: ["RxSwift", "RxRelay"],
-            path: "ios/RIBs"
+            name: "ModernRIBs",
+            path: "ModernRIBs"
         ),
         .testTarget(
-            name: "RIBsTests",
-            dependencies: ["RIBs"],
-            path: "ios/RIBsTests"
+            name: "ModernRIBsTests",
+            dependencies: ["ModernRIBs"],
+            path: "ModernRIBsTests"
         ),
     ]
 )

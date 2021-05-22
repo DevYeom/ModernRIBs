@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "8B9882E11F86E1CF00ABE009"
-               BuildableName = "RIBs.framework"
-               BlueprintName = "RIBs"
-               ReferencedContainer = "container:RIBs.xcodeproj">
+               BuildableName = "ModernRIBs.framework"
+               BlueprintName = "ModernRIBs"
+               ReferencedContainer = "container:ModernRIBs.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -27,29 +27,27 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "8B9882E11F86E1CF00ABE009"
+            BuildableName = "ModernRIBs.framework"
+            BlueprintName = "ModernRIBs"
+            ReferencedContainer = "container:ModernRIBs.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
       <Testables>
          <TestableReference
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "8B9882EA1F86E1CF00ABE009"
-               BuildableName = "RIBsTests.xctest"
-               BlueprintName = "RIBsTests"
-               ReferencedContainer = "container:RIBs.xcodeproj">
+               BuildableName = "ModernRIBsTests.xctest"
+               BlueprintName = "ModernRIBsTests"
+               ReferencedContainer = "container:ModernRIBs.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "8B9882E11F86E1CF00ABE009"
-            BuildableName = "RIBs.framework"
-            BlueprintName = "RIBs"
-            ReferencedContainer = "container:RIBs.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -65,13 +63,11 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8B9882E11F86E1CF00ABE009"
-            BuildableName = "RIBs.framework"
-            BlueprintName = "RIBs"
-            ReferencedContainer = "container:RIBs.xcodeproj">
+            BuildableName = "ModernRIBs.framework"
+            BlueprintName = "ModernRIBs"
+            ReferencedContainer = "container:ModernRIBs.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
-      <AdditionalOptions>
-      </AdditionalOptions>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -83,9 +79,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "8B9882E11F86E1CF00ABE009"
-            BuildableName = "RIBs.framework"
-            BlueprintName = "RIBs"
-            ReferencedContainer = "container:RIBs.xcodeproj">
+            BuildableName = "ModernRIBs.framework"
+            BlueprintName = "ModernRIBs"
+            ReferencedContainer = "container:ModernRIBs.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>
