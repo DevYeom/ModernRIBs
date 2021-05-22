@@ -28,7 +28,7 @@ public protocol RouterScope: AnyObject {
 
     /// An observable that emits values when the router scope reaches its corresponding life-cycle stages. This
     /// observable completes when the router scope is deallocated.
-    var lifecycle: Observable<RouterLifecycle> { get }
+    var lifecycle: AnyPublisher<RouterLifecycle, Never> { get }
 }
 
 /// The base protocol for all routers.
@@ -87,8 +87,8 @@ open class Router<InteractorType>: Routing {
     /// The observable that emits values when the router scope reaches its corresponding life-cycle stages.
     ///
     /// This observable completes when the router scope is deallocated.
-    public final var lifecycle: Observable<RouterLifecycle> {
-        return lifecycleSubject.asObservable()
+    public final var lifecycle: AnyPublisher<RouterLifecycle, Never> {
+        return lifecycleSubject.eraseToAnyPublisher()
     }
 
     /// Initializer.
@@ -152,31 +152,32 @@ open class Router<InteractorType>: Routing {
 
     // MARK: - Internal
 
-    let deinitDisposable = CompositeDisposable()
+    let deinitCancellable = CompositeCancellable()
 
     func internalDidLoad() {
         bindSubtreeActiveState()
-        lifecycleSubject.onNext(.didLoad)
+        lifecycleSubject.send(.didLoad)
     }
 
     // MARK: - Private
 
-    private let lifecycleSubject = PublishSubject<RouterLifecycle>()
+    private let lifecycleSubject = PassthroughSubject<RouterLifecycle, Never>()
     private var didLoadFlag: Bool = false
 
     private func bindSubtreeActiveState() {
 
-        let disposable = interactable.isActiveStream
+        let cancellable = interactable.isActiveStream
             // Do not retain self here to guarantee execution. Retaining self will cause the dispose bag
             // to never be disposed, thus self is never deallocated. Also cannot just store the disposable
             // and call dispose(), since we want to keep the subscription alive until deallocation, in
             // case the router is re-attached. Using weak does require the router to be retained until its
             // interactor is deactivated.
-            .subscribe(onNext: { [weak self] (isActive: Bool) in
+            .sink(receiveValue: { [weak self] (isActive: Bool) in
                 // When interactor becomes active, we are attached to parent, otherwise we are detached.
                 self?.setSubtreeActive(isActive)
             })
-        _ = deinitDisposable.insert(disposable)
+
+        deinitCancellable.insert(cancellable)
     }
 
     private func setSubtreeActive(_ active: Bool) {
@@ -218,9 +219,9 @@ open class Router<InteractorType>: Routing {
             detachAllChildren()
         }
 
-        lifecycleSubject.onCompleted()
+        lifecycleSubject.send(completion: .finished)
 
-        deinitDisposable.dispose()
+        deinitCancellable.cancel()
 
         LeakDetector.instance.expectDeallocate(object: interactable)
     }
