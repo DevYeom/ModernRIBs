@@ -175,8 +175,8 @@ public extension AnyPublisher {
     }
 }
 
-/// Interactor related `Disposable` extensions.
-public extension Cancellable {
+/// Interactor related `AnyCancellable` extensions.
+public extension AnyCancellable {
 
     /// Disposes the subscription based on the lifecycle of the given `Interactor`. The subscription is disposed
     /// when the interactor is deactivated.
@@ -193,7 +193,7 @@ public extension Cancellable {
     ///
     /// - parameter interactor: The interactor to dispose the subscription based on.
     @discardableResult
-    func disposeOnDeactivate(interactor: Interactor) -> Cancellable {
+    func disposeOnDeactivate(interactor: Interactor) -> AnyCancellable {
         if let activenessCancellable = interactor.activenessCancellable {
             activenessCancellable.insert(self)
         } else {
@@ -206,14 +206,14 @@ public extension Cancellable {
 
 public final class CompositeCancellable: Cancellable {
     private var isCancelled: Bool = false
-    private var cancellables: [Cancellable] = []
+    private var cancellables: Set<AnyCancellable> = .init()
 
-    public func insert(_ cancellable: Cancellable) {
+    public func insert(_ cancellable: AnyCancellable) {
         guard !isCancelled else {
             cancellable.cancel()
             return
         }
-        cancellables.append(cancellable)
+        cancellables.insert(cancellable)
     }
 
     public func cancel() {
