@@ -203,22 +203,3 @@ public extension AnyCancellable {
         return self
     }
 }
-
-public final class CompositeCancellable: Cancellable {
-    private var isCancelled: Bool = false
-    private var cancellables: Set<AnyCancellable> = .init()
-
-    public func insert(_ cancellable: AnyCancellable) {
-        guard !isCancelled else {
-            cancellable.cancel()
-            return
-        }
-        cancellables.insert(cancellable)
-    }
-
-    public func cancel() {
-        guard !isCancelled else { return }
-        isCancelled = true
-        cancellables.forEach { $0.cancel() }
-    }
-}
