@@ -33,7 +33,7 @@ public protocol InteractorScope: AnyObject {
     ///
     /// - note: Subscription to this stream always immediately returns the last event. This stream terminates after
     ///   the interactor is deallocated.
-    var isActiveStream: Observable<Bool> { get }
+    var isActiveStream: AnyPublisher<Bool, Never> { get }
 }
 
 /// The base protocol for all interactors.
@@ -68,16 +68,12 @@ open class Interactor: Interactable {
 
     /// Indicates if the interactor is active.
     public final var isActive: Bool {
-        do {
-            return try isActiveSubject.value()
-        } catch {
-            return false
-        }
+        return isActiveSubject.value
     }
 
     /// A stream notifying on the lifecycle of this interactor.
-    public final var isActiveStream: Observable<Bool> {
-        return isActiveSubject.asObservable().distinctUntilChanged()
+    public final var isActiveStream: AnyPublisher<Bool, Never> {
+        return isActiveSubject.removeDuplicates().eraseToAnyPublisher()
     }
 
     /// Initializer.
@@ -94,9 +90,9 @@ open class Interactor: Interactable {
             return
         }
 
-        activenessDisposable = CompositeDisposable()
+        activenessCancellable = CompositeCancellable()
 
-        isActiveSubject.onNext(true)
+        isActiveSubject.send(true)
 
         didBecomeActive()
     }
@@ -120,10 +116,10 @@ open class Interactor: Interactable {
 
         willResignActive()
 
-        activenessDisposable?.dispose()
-        activenessDisposable = nil
+        activenessCancellable?.cancel()
+        activenessCancellable = nil
 
-        isActiveSubject.onNext(false)
+        isActiveSubject.send(false)
     }
 
     /// Callend when the `Interactor` will resign the active state.
@@ -136,19 +132,19 @@ open class Interactor: Interactable {
 
     // MARK: - Private
 
-    private let isActiveSubject = BehaviorSubject<Bool>(value: false)
-    fileprivate var activenessDisposable: CompositeDisposable?
+    private let isActiveSubject = CurrentValueSubject<Bool, Never>(false)
+    fileprivate var activenessCancellable: CompositeCancellable?
 
     deinit {
         if isActive {
             deactivate()
         }
-        isActiveSubject.onCompleted()
+        isActiveSubject.send(completion: .finished)
     }
 }
 
-/// Interactor related `Observable` extensions.
-public extension ObservableType {
+/// Interactor related `AnyPublisher` extensions.
+public extension AnyPublisher {
 
     /// Confines the observable's subscription to the given interactor scope. The subscription is only triggered
     /// after the interactor scope is active and before the interactor scope resigns active. This composition
@@ -163,9 +159,10 @@ public extension ObservableType {
     /// - parameter interactorScope: The interactor scope whose activeness this observable is confined to.
     /// - returns: The `Observable` confined to this interactor's activeness lifecycle.
 
-    func confineTo(_ interactorScope: InteractorScope) -> Observable<Element> {
-        return Observable
-            .combineLatest(interactorScope.isActiveStream, self) { isActive, value in
+    func confineTo(_ interactorScope: InteractorScope) -> AnyPublisher<Output, Never> {
+        return self
+            .assertNoFailure()
+            .combineLatest(interactorScope.isActiveStream) { value, isActive in
                 (isActive, value)
             }
             .filter { isActive, value in
@@ -174,11 +171,12 @@ public extension ObservableType {
             .map { isActive, value in
                 value
             }
+            .eraseToAnyPublisher()
     }
 }
 
 /// Interactor related `Disposable` extensions.
-public extension Disposable {
+public extension Cancellable {
 
     /// Disposes the subscription based on the lifecycle of the given `Interactor`. The subscription is disposed
     /// when the interactor is deactivated.
@@ -195,13 +193,32 @@ public extension Disposable {
     ///
     /// - parameter interactor: The interactor to dispose the subscription based on.
     @discardableResult
-    func disposeOnDeactivate(interactor: Interactor) -> Disposable {
-        if let activenessDisposable = interactor.activenessDisposable {
-            _ = activenessDisposable.insert(self)
+    func disposeOnDeactivate(interactor: Interactor) -> Cancellable {
+        if let activenessCancellable = interactor.activenessCancellable {
+            activenessCancellable.insert(self)
         } else {
-            dispose()
+            cancel()
             print("Subscription immediately terminated, since \(interactor) is inactive.")
         }
         return self
+    }
+}
+
+public final class CompositeCancellable: Cancellable {
+    private var isCancelled: Bool = false
+    private var cancellables: [Cancellable] = []
+
+    public func insert(_ cancellable: Cancellable) {
+        guard !isCancelled else {
+            cancellable.cancel()
+            return
+        }
+        cancellables.append(cancellable)
+    }
+
+    public func cancel() {
+        guard !isCancelled else { return }
+        isCancelled = true
+        cancellables.forEach { $0.cancel() }
     }
 }
