@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-import RxSwift
+import Combine
 
 /// The base protocol of all workers that perform a self-contained piece of logic.
 ///

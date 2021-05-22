@@ -14,8 +14,7 @@
 //  limitations under the License.
 //
 
-import RxSwift
-import RxRelay
+import Combine
 import UIKit
 
 /// Leak detection status.

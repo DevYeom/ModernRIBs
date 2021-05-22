@@ -15,7 +15,7 @@
 //
 
 import Foundation
-import RxSwift
+import Combine
 import UIKit
 
 /// Protocol defining the activeness of an interactor's scope.

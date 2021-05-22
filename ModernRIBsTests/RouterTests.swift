@@ -14,9 +14,9 @@
 //  limitations under the License.
 //
 
-import RxSwift
+import Combine
 import XCTest
-@testable import RIBs
+@testable import ModernRIBs
 
 final class RouterTests: XCTestCase {
 

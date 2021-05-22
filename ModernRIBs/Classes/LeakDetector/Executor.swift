@@ -16,7 +16,7 @@
 
 import Dispatch
 import Foundation
-import RxSwift
+import Combine
 
 public class Executor {
 

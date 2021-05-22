@@ -14,9 +14,8 @@
 //  limitations under the License.
 //
 
-import RIBs
-import RxRelay
-import RxSwift
+import ModernRIBs
+import Combine
 import UIKit
 
 class WindowMock: UIWindow {

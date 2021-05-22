@@ -15,8 +15,8 @@
 //
 
 import XCTest
-import RxSwift
-@testable import RIBs
+import Combine
+@testable import ModernRIBs
 
 final class WorkerflowTests: XCTestCase {
 

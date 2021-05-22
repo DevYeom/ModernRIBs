@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-import RxSwift
+import Combine
 
 /// The lifecycle stages of a router scope.
 public enum RouterLifecycle {

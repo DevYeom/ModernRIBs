@@ -14,7 +14,7 @@
 //  limitations under the License.
 //
 
-@testable import RIBs
+@testable import ModernRIBs
 import XCTest
 
 final class LaunchRouterTests: XCTestCase {
