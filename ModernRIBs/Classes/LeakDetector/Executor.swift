@@ -19,6 +19,7 @@ import Foundation
 import Combine
 
 public class Executor {
+    static var subscriptions: Set<AnyCancellable> = .init()
 
     /// Execute the given logic after the given delay assuming the given maximum frame duration.
     ///
@@ -32,16 +33,20 @@ public class Executor {
     /// - parameter maxFrameDuration: The maximum duration a single frame should take. Defaults to 33ms.
     /// - parameter logic: The closure logic to perform.
     public static func execute(withDelay delay: TimeInterval, maxFrameDuration: Int = 33, logic: @escaping () -> ()) {
-        let period = DispatchTimeInterval.milliseconds(maxFrameDuration / 3)
+        let period = TimeInterval(maxFrameDuration / 3) / 1_000 // milliseconds
         var lastRunLoopTime = Date().timeIntervalSinceReferenceDate
         var properFrameTime = 0.0
         var didExecute = false
-        _ = Observable<Int>
-            .timer(DispatchTimeInterval.milliseconds(0), period: period, scheduler: MainScheduler.instance)
-            .take(while: {  _ in
+        var cancellable: AnyCancellable!
+
+        cancellable = Timer.publish(every: period, on: .main, in: .common)
+            .autoconnect()
+            .prefix(while: { _ in
                 !didExecute
             })
-            .subscribe(onNext: { _ in
+            .sink(receiveCompletion: { _ in
+                subscriptions.remove(cancellable)
+            }, receiveValue: { _ in
                 let currentTime = Date().timeIntervalSinceReferenceDate
                 let trueElapsedTime = currentTime - lastRunLoopTime
                 lastRunLoopTime = currentTime
@@ -56,5 +61,7 @@ public class Executor {
                     logic()
                 }
             })
+
+        cancellable.store(in: &subscriptions)
     }
 }
