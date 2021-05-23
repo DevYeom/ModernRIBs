@@ -37,15 +37,17 @@ public class Executor {
         var lastRunLoopTime = Date().timeIntervalSinceReferenceDate
         var properFrameTime = 0.0
         var didExecute = false
-        var cancellable: AnyCancellable!
+        var cancellable: AnyCancellable?
 
         cancellable = Timer.publish(every: period, on: .main, in: .common)
             .autoconnect()
             .prefix(while: { _ in
                 !didExecute
             })
-            .sink(receiveCompletion: { _ in
-                subscriptions.remove(cancellable)
+            .sink(receiveCompletion: { [weak cancellable] _ in
+                if let cancellable = cancellable {
+                    subscriptions.remove(cancellable)
+                }
             }, receiveValue: { _ in
                 let currentTime = Date().timeIntervalSinceReferenceDate
                 let trueElapsedTime = currentTime - lastRunLoopTime
@@ -62,6 +64,6 @@ public class Executor {
                 }
             })
 
-        cancellable.store(in: &subscriptions)
+        cancellable?.store(in: &subscriptions)
     }
 }
