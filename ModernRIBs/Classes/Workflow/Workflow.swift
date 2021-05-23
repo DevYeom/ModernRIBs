@@ -138,7 +138,6 @@ open class Step<WorkflowActionableItemType, ActionableItemType, ValueType> {
                 }
             }
             .switchToLatest()
-            .eraseToAnyPublisher()
             .filter { (isActive: Bool, _, _) -> Bool in
                 isActive
             }
@@ -147,7 +146,6 @@ open class Step<WorkflowActionableItemType, ActionableItemType, ValueType> {
                 onStep(actionableItem, value)
             }
             .switchToLatest()
-            .eraseToAnyPublisher()
             .prefix(1)
             .share()
             .eraseToAnyPublisher()
