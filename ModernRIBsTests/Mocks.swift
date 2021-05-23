@@ -48,22 +48,22 @@ class InteractorMock: Interactable {
         return active.value
     }
 
-    var isActiveStream: Observable<Bool> {
-        return active.asObservable()
+    var isActiveStream: AnyPublisher<Bool, Never> {
+        return active.eraseToAnyPublisher()
     }
 
-    private let active = BehaviorRelay<Bool>(value: false)
+    private let active = CurrentValueSubject<Bool, Never>(false)
 
     init() {}
 
     // MARK: - Lifecycle
 
     func activate() {
-        active.accept(true)
+        active.send(true)
     }
 
     func deactivate() {
-        active.accept(false)
+        active.send(false)
     }
 }
 
@@ -71,9 +71,9 @@ class InteractableMock: Interactable {
     // Variables
     var isActive: Bool = false { didSet { isActiveSetCallCount += 1 } }
     var isActiveSetCallCount = 0
-    var isActiveStreamSubject: PublishSubject<Bool> = PublishSubject<Bool>() { didSet { isActiveStreamSubjectSetCallCount += 1 } }
+    var isActiveStreamSubject = PassthroughSubject<Bool, Never>() { didSet { isActiveStreamSubjectSetCallCount += 1 } }
     var isActiveStreamSubjectSetCallCount = 0
-    var isActiveStream: Observable<Bool> { return isActiveStreamSubject }
+    var isActiveStream: AnyPublisher<Bool, Never> { return isActiveStreamSubject.eraseToAnyPublisher() }
 
     // Function Handlers
     var activateHandler: (() -> ())?
