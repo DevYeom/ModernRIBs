@@ -25,7 +25,7 @@ import Combine
 /// A workflow should always start at the root of the tree.
 open class Workflow<ActionableItemType> {
 
-    /// Called when the last step observable is completed.
+    /// Called when the last step publisher is completed.
     ///
     /// Subclasses should override this method if they want to execute logic at this point in the `Workflow` lifecycle.
     /// The default implementation does nothing.
@@ -41,7 +41,7 @@ open class Workflow<ActionableItemType> {
         // No-op
     }
 
-    /// Called when the last step observable is has error.
+    /// Called when the last step publisher is has error.
     ///
     /// Subclasses should override this method if they want to execute logic at this point in the `Workflow` lifecycle.
     /// The default implementation does nothing.
@@ -173,8 +173,8 @@ open class Step<WorkflowActionableItemType, ActionableItemType, ValueType> {
     /// - returns: The committed `Workflow`.
     @discardableResult
     public final func commit() -> Workflow<WorkflowActionableItemType> {
-        // Side-effects must be chained at the last observable sequence, since errors and complete
-        // events can be emitted by any observables on any steps of the workflow.
+        // Side-effects must be chained at the last publisher sequence, since errors and complete
+        // events can be emitted by any publishers on any steps of the workflow.
         let cancellable = publisher
             .sink(receiveCompletion: { result in
                 switch result {
@@ -191,21 +191,29 @@ open class Step<WorkflowActionableItemType, ActionableItemType, ValueType> {
         return workflow
     }
 
-    /// Convert the `Workflow` into an obseravble.
+    /// Convert the `Workflow` into a publisher.
     ///
-    /// - returns: The observable representation of this `Workflow`.
-    public final func asObservable() -> AnyPublisher<(ActionableItemType, ValueType), Error> {
+    /// - returns: The publisher representation of this `Workflow`.
+    public final func asPublisher() -> AnyPublisher<(ActionableItemType, ValueType), Error> {
         return publisher
+    }
+
+    /// Convert the `Workflow` into a publisher.
+    ///
+    /// - returns: The publisher representation of this `Workflow`.
+    @available(*, deprecated, renamed: "asPublisher()")
+    public final func asObservable() -> AnyPublisher<(ActionableItemType, ValueType), Error> {
+        return asPublisher()
     }
 }
 
 /// `Workflow` related publisher extensions.
 public extension Publisher {
 
-    /// Fork the step from this obervable.
+    /// Fork the step from this publisher.
     ///
     /// - parameter workflow: The workflow this step belongs to.
-    /// - returns: The newly forked step in the workflow. `nil` if this observable does not conform to the required
+    /// - returns: The newly forked step in the workflow. `nil` if this publisher does not conform to the required
     ///   generic type of (ActionableItemType, ValueType).
     func fork<WorkflowActionableItemType, ActionableItemType, ValueType>(_ workflow: Workflow<WorkflowActionableItemType>) -> Step<WorkflowActionableItemType, ActionableItemType, ValueType>? {
         if let stepPublisher = self as? AnyPublisher<(ActionableItemType, ValueType), Error> {

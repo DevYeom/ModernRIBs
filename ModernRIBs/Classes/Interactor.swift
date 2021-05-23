@@ -146,18 +146,18 @@ open class Interactor: Interactable {
 /// Interactor related `AnyPublisher` extensions.
 public extension AnyPublisher {
 
-    /// Confines the observable's subscription to the given interactor scope. The subscription is only triggered
+    /// Confines the publisher's subscription to the given interactor scope. The subscription is only triggered
     /// after the interactor scope is active and before the interactor scope resigns active. This composition
     /// delays the subscription but does not cancel the subscription, when the interactor scope becomes inactive.
     ///
     /// - note: This method should only be used for subscriptions outside of an `Interactor`, for cases where a
     ///   piece of logic is only executed when the bound interactor scope is active.
     ///
-    /// - note: Only the latest value from this observable is emitted. Values emitted when the interactor is not
+    /// - note: Only the latest value from this publisher is emitted. Values emitted when the interactor is not
     ///   active, are ignored.
     ///
-    /// - parameter interactorScope: The interactor scope whose activeness this observable is confined to.
-    /// - returns: The `Observable` confined to this interactor's activeness lifecycle.
+    /// - parameter interactorScope: The interactor scope whose activeness this publisher is confined to.
+    /// - returns: The `Publisher` confined to this interactor's activeness lifecycle.
 
     func confineTo(_ interactorScope: InteractorScope) -> AnyPublisher<Output, Never> {
         return self

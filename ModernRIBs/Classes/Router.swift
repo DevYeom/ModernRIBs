@@ -26,8 +26,8 @@ public enum RouterLifecycle {
 /// The scope of a `Router`, defining various lifecycles of a `Router`.
 public protocol RouterScope: AnyObject {
 
-    /// An observable that emits values when the router scope reaches its corresponding life-cycle stages. This
-    /// observable completes when the router scope is deallocated.
+    /// A publisher that emits values when the router scope reaches its corresponding life-cycle stages. This
+    /// publisher completes when the router scope is deallocated.
     var lifecycle: AnyPublisher<RouterLifecycle, Never> { get }
 }
 
@@ -84,9 +84,9 @@ open class Router<InteractorType>: Routing {
     /// The list of children `Router`s of this `Router`.
     public final var children: [Routing] = []
 
-    /// The observable that emits values when the router scope reaches its corresponding life-cycle stages.
+    /// The publisher that emits values when the router scope reaches its corresponding life-cycle stages.
     ///
-    /// This observable completes when the router scope is deallocated.
+    /// This publisher completes when the router scope is deallocated.
     public final var lifecycle: AnyPublisher<RouterLifecycle, Never> {
         return lifecycleSubject.eraseToAnyPublisher()
     }

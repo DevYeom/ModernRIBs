@@ -39,7 +39,7 @@ final class RouterTests: XCTestCase {
 
     // MARK: - Tests
 
-    func test_load_verifyLifecycleObservable() {
+    func test_load_verifyLifecyclePublisher() {
         var currentLifecycle: RouterLifecycle?
         var didComplete = false
         lifecycleCancellable = router

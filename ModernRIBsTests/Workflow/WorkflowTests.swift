@@ -29,41 +29,41 @@ final class WorkerflowTests: XCTestCase {
         var innerStep2RunCount = 0
         var innerStep3RunCount = 0
 
-        let emptyObservable = Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
+        let emptyPublisher = Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
 
         let workflow = Workflow<String>()
         _ = workflow
             .onStep { (mock) -> AnyPublisher<((), ()), Error> in
                 outerStep1RunCount += 1
 
-                return emptyObservable
+                return emptyPublisher
             }
             .onStep { (_, _) -> AnyPublisher<((), ()), Error> in
                 outerStep2RunCount += 1
 
-                return emptyObservable
+                return emptyPublisher
             }
             .onStep { (_, _) -> AnyPublisher<((), ()), Error> in
                 outerStep3RunCount += 1
 
-                let innerStep: Step<String, (), ()>? = emptyObservable.fork(workflow)
+                let innerStep: Step<String, (), ()>? = emptyPublisher.fork(workflow)
 
                 innerStep?
                     .onStep({ (_, _) -> AnyPublisher<((), ()), Error> in
                         innerStep1RunCount += 1
-                        return emptyObservable
+                        return emptyPublisher
                     })
                     .onStep({ (_, _) -> AnyPublisher<((), ()), Error> in
                         innerStep2RunCount += 1
-                        return emptyObservable
+                        return emptyPublisher
                     })
                     .onStep({ (_, _) -> AnyPublisher<((), ()), Error> in
                         innerStep3RunCount += 1
-                        return emptyObservable
+                        return emptyPublisher
                     })
                     .commit()
 
-                return emptyObservable
+                return emptyPublisher
             }
             .commit()
             .subscribe("Test Actionable Item")
@@ -80,19 +80,19 @@ final class WorkerflowTests: XCTestCase {
     func test_workflowReceivesError() {
         let workflow = TestWorkflow()
 
-        let emptyObservable = Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
+        let emptyPublisher = Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
         _ = workflow
             .onStep { _ -> AnyPublisher<((), ()), Error> in
-                return emptyObservable
+                return emptyPublisher
             }
             .onStep { _, _ -> AnyPublisher<((), ()), Error> in
-                return emptyObservable
+                return emptyPublisher
             }
             .onStep { _, _ -> AnyPublisher<((), ()), Error> in
                 return Fail(error: WorkflowTestError.error).eraseToAnyPublisher()
             }
             .onStep { _, _ -> AnyPublisher<((), ()), Error> in
-                return emptyObservable
+                return emptyPublisher
             }
             .commit()
             .subscribe(())
@@ -105,16 +105,16 @@ final class WorkerflowTests: XCTestCase {
     func test_workflowDidComplete() {
         let workflow = TestWorkflow()
 
-        let emptyObservable = Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
+        let emptyPublisher = Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
         _ = workflow
             .onStep { _ -> AnyPublisher<((), ()), Error> in
-                return emptyObservable
+                return emptyPublisher
             }
             .onStep { _, _ -> AnyPublisher<((), ()), Error> in
-                return emptyObservable
+                return emptyPublisher
             }
             .onStep { _, _ -> AnyPublisher<((), ()), Error> in
-                return emptyObservable
+                return emptyPublisher
             }
             .commit()
             .subscribe(())
@@ -127,25 +127,25 @@ final class WorkerflowTests: XCTestCase {
     func test_workflowDidFork() {
         let workflow = TestWorkflow()
 
-        let emptyObservable = Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
+        let emptyPublisher = Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
         _ = workflow
             .onStep { _ -> AnyPublisher<((), ()), Error> in
-                return emptyObservable
+                return emptyPublisher
             }
             .onStep { _, _ -> AnyPublisher<((), ()), Error> in
-                return emptyObservable
+                return emptyPublisher
             }
             .onStep { _, _ -> AnyPublisher<((), ()), Error> in
-                return emptyObservable
+                return emptyPublisher
             }
             .onStep { _, _ -> AnyPublisher<((), ()), Error> in
-                let forkedStep: Step<(), (), ()>? = emptyObservable.fork(workflow)
+                let forkedStep: Step<(), (), ()>? = emptyPublisher.fork(workflow)
                 forkedStep?
                     .onStep { _, _ -> AnyPublisher<((), ()), Error> in
-                        return emptyObservable
+                        return emptyPublisher
                     }
                     .commit()
-                return emptyObservable
+                return emptyPublisher
             }
             .commit()
             .subscribe(())
@@ -159,21 +159,21 @@ final class WorkerflowTests: XCTestCase {
         let workflow = TestWorkflow()
 
         var rootCallCount = 0
-        let emptyObservable = Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
+        let emptyPublisher = Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
         let rootStep = workflow
             .onStep { _ -> AnyPublisher<((), ()), Error> in
                 rootCallCount += 1
-                return emptyObservable
+                return emptyPublisher
         }
 
-        let firstFork: Step<(), (), ()>? = rootStep.asObservable().fork(workflow)
+        let firstFork: Step<(), (), ()>? = rootStep.asPublisher().fork(workflow)
         _ = firstFork?
             .onStep { (_, _) -> AnyPublisher<((), ()), Error> in
                 return Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
             }
             .commit()
 
-        let secondFork: Step<(), (), ()>? = rootStep.asObservable().fork(workflow)
+        let secondFork: Step<(), (), ()>? = rootStep.asPublisher().fork(workflow)
         _ = secondFork?
             .onStep { (_, _) -> AnyPublisher<((), ()), Error> in
                 return Just(((), ())).setFailureType(to: Error.self).eraseToAnyPublisher()
