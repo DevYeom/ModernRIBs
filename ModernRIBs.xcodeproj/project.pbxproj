@@ -600,7 +600,7 @@
 					"$(inherited)",
 					"$(PRODUCTS_DIR)../Carthage/Build/iOS/",
 				);
-				INFOPLIST_FILE = RIBsTests/Info.plist;
+				INFOPLIST_FILE = ModernRIBsTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.uber.RIBsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -618,7 +618,7 @@
 					"$(inherited)",
 					"$(PRODUCTS_DIR)../Carthage/Build/iOS/",
 				);
-				INFOPLIST_FILE = RIBsTests/Info.plist;
+				INFOPLIST_FILE = ModernRIBsTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.uber.RIBsTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
