@@ -178,12 +178,12 @@ open class Step<WorkflowActionableItemType, ActionableItemType, ValueType> {
         // Side-effects must be chained at the last observable sequence, since errors and complete
         // events can be emitted by any observables on any steps of the workflow.
         let cancellable = publisher
-            .sink(receiveCompletion: { [weak self] result in
+            .sink(receiveCompletion: { result in
                 switch result {
                 case .finished:
-                    self?.workflow.didCompleteIfNotYet()
+                    self.workflow.didCompleteIfNotYet()
                 case .failure(let error):
-                    self?.workflow.didReceiveError(error)
+                    self.workflow.didReceiveError(error)
                 }
             }, receiveValue: { (actionableItem: ActionableItemType, value: ValueType) in
             })
