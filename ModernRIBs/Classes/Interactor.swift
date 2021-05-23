@@ -148,7 +148,7 @@ public extension AnyPublisher {
 
     /// Confines the observable's subscription to the given interactor scope. The subscription is only triggered
     /// after the interactor scope is active and before the interactor scope resigns active. This composition
-    /// delays the subscription but does not dispose the subscription, when the interactor scope becomes inactive.
+    /// delays the subscription but does not cancel the subscription, when the interactor scope becomes inactive.
     ///
     /// - note: This method should only be used for subscriptions outside of an `Interactor`, for cases where a
     ///   piece of logic is only executed when the bound interactor scope is active.
@@ -178,22 +178,22 @@ public extension AnyPublisher {
 /// Interactor related `AnyCancellable` extensions.
 public extension AnyCancellable {
 
-    /// Disposes the subscription based on the lifecycle of the given `Interactor`. The subscription is disposed
-    /// when the interactor is deactivated.
+    /// Cancels the subscription based on the lifecycle of the given `Interactor`. The subscription is
+    /// cancelled when the interactor is deactivated.
     ///
     /// - note: This is the preferred method when trying to confine a subscription to the lifecycle of an
     ///   `Interactor`.
     ///
     /// When using this composition, the subscription closure may freely retain the interactor itself, since the
-    /// subscription closure is disposed once the interactor is deactivated, thus releasing the retain cycle before
-    /// the interactor needs to be deallocated.
+    /// subscription closure is cancelled once the interactor is deactivated, thus releasing the retain cycle
+    /// before the interactor needs to be deallocated.
     ///
     /// If the given interactor is inactive at the time this method is invoked, the subscription is immediately
     /// terminated.
     ///
-    /// - parameter interactor: The interactor to dispose the subscription based on.
+    /// - parameter interactor: The interactor to cancel the subscription based on.
     @discardableResult
-    func disposeOnDeactivate(interactor: Interactor) -> AnyCancellable {
+    func cancelOnDeactivate(interactor: Interactor) -> AnyCancellable {
         if let activenessCancellable = interactor.activenessCancellable {
             activenessCancellable.insert(self)
         } else {
@@ -201,5 +201,25 @@ public extension AnyCancellable {
             print("Subscription immediately terminated, since \(interactor) is inactive.")
         }
         return self
+    }
+
+    /// Cancels the subscription based on the lifecycle of the given `Interactor`. The subscription is
+    /// cancelled when the interactor is deactivated.
+    ///
+    /// - note: This is the preferred method when trying to confine a subscription to the lifecycle of an
+    ///   `Interactor`.
+    ///
+    /// When using this composition, the subscription closure may freely retain the interactor itself, since the
+    /// subscription closure is cancelled once the interactor is deactivated, thus releasing the retain cycle
+    /// before the interactor needs to be deallocated.
+    ///
+    /// If the given interactor is inactive at the time this method is invoked, the subscription is immediately
+    /// terminated.
+    ///
+    /// - parameter interactor: The interactor to cancel the subscription based on.
+    @available(*, deprecated, renamed: "cancelOnDeactivate(interactor:)")
+    @discardableResult
+    func disposeOnDeactivate(interactor: Interactor) -> AnyCancellable {
+        cancelOnDeactivate(interactor: interactor)
     }
 }

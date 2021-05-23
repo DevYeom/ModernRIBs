@@ -66,7 +66,7 @@ open class Workflow<ActionableItemType> {
     /// Subscribe and start the `Workflow` sequence.
     ///
     /// - parameter actionableItem: The initial actionable item for the first step.
-    /// - returns: The disposable of this workflow.
+    /// - returns: The cancellable of this workflow.
     public final func subscribe(_ actionableItem: ActionableItemType) -> Cancellable {
         guard compositeCancellable.count > 0 else {
             assertionFailure("Attempt to subscribe to \(self) before it is comitted.")
@@ -82,7 +82,7 @@ open class Workflow<ActionableItemType> {
     private let subject = PassthroughSubject<(ActionableItemType, ()), Error>()
     private var didInvokeComplete = false
 
-    /// The composite disposable that contains all subscriptions including the original workflow
+    /// The composite cancellable that contains all subscriptions including the original workflow
     /// as well as all the forked ones.
     fileprivate let compositeCancellable = CompositeCancellable()
 
@@ -219,16 +219,30 @@ public extension Publisher {
 /// `Workflow` related `AnyCancellable` extensions.
 public extension AnyCancellable {
 
-    /// Dispose the subscription when the given `Workflow` is disposed.
+    /// Cancel the subscription when the given `Workflow` is cancelled.
     ///
     /// When using this composition, the subscription closure may freely retain the workflow itself, since the
-    /// subscription closure is disposed once the workflow is disposed, thus releasing the retain cycle before the
+    /// subscription closure is cancelled once the workflow is cancelled, thus releasing the retain cycle before the
     /// `Workflow` needs to be deallocated.
     ///
     /// - note: This is the preferred method when trying to confine a subscription to the lifecycle of a `Workflow`.
     ///
-    /// - parameter workflow: The workflow to dispose the subscription with.
+    /// - parameter workflow: The workflow to cancel the subscription with.
+    func cancelWith<ActionableItemType>(workflow: Workflow<ActionableItemType>) {
+        workflow.compositeCancellable.insert(self)
+    }
+
+    /// Cancel the subscription when the given `Workflow` is cancelled.
+    ///
+    /// When using this composition, the subscription closure may freely retain the workflow itself, since the
+    /// subscription closure is cancelled once the workflow is cancelled, thus releasing the retain cycle before the
+    /// `Workflow` needs to be deallocated.
+    ///
+    /// - note: This is the preferred method when trying to confine a subscription to the lifecycle of a `Workflow`.
+    ///
+    /// - parameter workflow: The workflow to cancel the subscription with.
+    @available(*, deprecated, renamed: "cancelWith(workflow:)")
     func disposeWith<ActionableItemType>(worflow: Workflow<ActionableItemType>) {
-        worflow.compositeCancellable.insert(self)
+        cancelWith(workflow: worflow)
     }
 }

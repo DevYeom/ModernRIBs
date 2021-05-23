@@ -69,8 +69,8 @@ open class ViewableRouter<InteractorType, ViewControllerType>: Router<Interactor
 
     private func setupViewControllerLeakDetection() {
         let cancellable = interactable.isActiveStream
-            // Do not retain self here to guarantee execution. Retaining self will cause the dispose bag to never be
-            // disposed, thus self is never deallocated. Also cannot just store the disposable and call dispose(),
+            // Do not retain self here to guarantee execution. Retaining self will cause the cancellables to never be
+            // cancelled, thus self is never deallocated. Also cannot just store the cancellable and call cancel(),
             // since we want to keep the subscription alive until deallocation, in case the router is re-attached.
             // Using weak does require the router to be retained until its interactor is deactivated.
             .sink(receiveValue: { [weak self] (isActive: Bool) in

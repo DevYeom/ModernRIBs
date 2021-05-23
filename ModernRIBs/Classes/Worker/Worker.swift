@@ -115,7 +115,7 @@ open class Worker: Working {
     /// Subclasses should override this method abnd implement any cleanup logic that they might want to execute when
     /// the `Worker` stops. The default implementation does noting.
     ///
-    /// - note: All subscriptions added to the disposable provided in the `didStart` method are automatically disposed
+    /// - note: All subscriptions added to the cancellable provided in the `didStart` method are automatically cancelled
     /// when the worker stops.
     open func didStop() {
         // No-op
@@ -173,18 +173,18 @@ open class Worker: Working {
 /// Worker related `AnyCancellable` extensions.
 public extension AnyCancellable {
 
-    /// Disposes the subscription based on the lifecycle of the given `Worker`. The subscription is disposed when the
+    /// Cancels the subscription based on the lifecycle of the given `Worker`. The subscription is cancelled when the
     /// `Worker` is stopped.
     ///
     /// If the given worker is stopped at the time this method is invoked, the subscription is immediately terminated.
     ///
     /// - note: When using this composition, the subscription closure may freely retain the `Worker` itself, since the
-    ///   subscription closure is disposed once the `Worker` is stopped, thus releasing the retain cycle before the
+    ///   subscription closure is cancelled once the `Worker` is stopped, thus releasing the retain cycle before the
     ///   `worker` needs to be deallocated.
     ///
-    /// - parameter worker: The `Worker` to dispose the subscription based on.
+    /// - parameter worker: The `Worker` to cancel the subscription based on.
     @discardableResult
-    func disposeOnStop(_ worker: Worker) -> AnyCancellable {
+    func cancelOnStop(_ worker: Worker) -> AnyCancellable {
         if let compositeCancellable = worker.cancellable {
             compositeCancellable.insert(self)
         } else {
@@ -192,6 +192,22 @@ public extension AnyCancellable {
             print("Subscription immediately terminated, since \(worker) is stopped.")
         }
         return self
+    }
+
+    /// Cancels the subscription based on the lifecycle of the given `Worker`. The subscription is cancelled when the
+    /// `Worker` is stopped.
+    ///
+    /// If the given worker is stopped at the time this method is invoked, the subscription is immediately terminated.
+    ///
+    /// - note: When using this composition, the subscription closure may freely retain the `Worker` itself, since the
+    ///   subscription closure is cancelled once the `Worker` is stopped, thus releasing the retain cycle before the
+    ///   `worker` needs to be deallocated.
+    ///
+    /// - parameter worker: The `Worker` to cancel the subscription based on.
+    @available(*, deprecated, renamed: "cancelOnStop()")
+    @discardableResult
+    func disposeOnStop(_ worker: Worker) -> AnyCancellable {
+        cancelOnStop(worker)
     }
 }
 
