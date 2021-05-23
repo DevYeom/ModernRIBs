@@ -20,9 +20,14 @@ import Combine
 final class CompositeCancellable: Cancellable {
     // MARK: - Internal
 
+    /// The number of elements in a composite cancellable set
+    var count: Int {
+        cancellables.count
+    }
+
     /// Insert a cancellable to cancellables
     ///
-    /// - parameter cancellable: to add to the composite cancellable set
+    /// - parameter cancellable: to add to a composite cancellable set
     func insert(_ cancellable: AnyCancellable) {
         guard !isCancelled else {
             cancellable.cancel()
@@ -31,7 +36,7 @@ final class CompositeCancellable: Cancellable {
         cancellables.insert(cancellable)
     }
 
-    /// Cancel all cancellables in the composite cancellable set
+    /// Cancel all cancellables in a composite cancellable set
     func cancel() {
         guard !isCancelled else { return }
         isCancelled = true
