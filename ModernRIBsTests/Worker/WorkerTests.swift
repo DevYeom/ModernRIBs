@@ -22,14 +22,14 @@ final class WorkerTests: XCTestCase {
 
     private var worker: TestWorker!
     private var interactor: InteractorMock!
-    private var disposable: DisposeBag!
+    private var cancellables: Set<AnyCancellable>!
 
     // MARK: - Setup
 
     override func setUp() {
         super.setUp()
 
-        disposable = DisposeBag()
+        cancellables = .init()
 
         worker = TestWorker()
         interactor = InteractorMock()
@@ -86,24 +86,24 @@ final class WorkerTests: XCTestCase {
 
     func test_start_stop_lifecycle() {
         worker.isStartedStream
-            .take(1)
-            .subscribe(onNext: { XCTAssertFalse($0) })
-            .disposed(by: disposable)
+            .prefix(1)
+            .sink(receiveValue: { XCTAssertFalse($0) })
+            .store(in: &cancellables)
 
         interactor.activate()
         worker.start(interactor)
 
         worker.isStartedStream
-            .take(1)
-            .subscribe(onNext: { XCTAssertTrue($0) })
-            .disposed(by: disposable)
+            .prefix(1)
+            .sink(receiveValue: { XCTAssertTrue($0) })
+            .store(in: &cancellables)
 
         worker.stop()
 
         worker.isStartedStream
-            .take(1)
-            .subscribe(onNext: { XCTAssertFalse($0) })
-            .disposed(by: disposable)
+            .prefix(1)
+            .sink(receiveValue: { XCTAssertFalse($0) })
+            .store(in: &cancellables)
     }
 }
 
