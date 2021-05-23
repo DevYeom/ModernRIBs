@@ -56,8 +56,8 @@ open class Workflow<ActionableItemType> {
     ///
     /// - parameter onStep: The closure to execute for the root step.
     /// - returns: The next step.
-    public final func onStep<NextActionableItemType, NextValueType>(_ onStep: @escaping (ActionableItemType) -> Observable<(NextActionableItemType, NextValueType)>) -> Step<ActionableItemType, NextActionableItemType, NextValueType> {
-        return Step(workflow: self, observable: subject.asObservable().take(1))
+    public final func onStep<NextActionableItemType, NextValueType>(_ onStep: @escaping (ActionableItemType) -> AnyPublisher<(NextActionableItemType, NextValueType), Error>) -> Step<ActionableItemType, NextActionableItemType, NextValueType> {
+        return Step(workflow: self, publisher: subject.prefix(1).eraseToAnyPublisher())
             .onStep { (actionableItem: ActionableItemType, _) in
                 onStep(actionableItem)
             }
@@ -67,24 +67,24 @@ open class Workflow<ActionableItemType> {
     ///
     /// - parameter actionableItem: The initial actionable item for the first step.
     /// - returns: The disposable of this workflow.
-    public final func subscribe(_ actionableItem: ActionableItemType) -> Disposable {
-        guard compositeDisposable.count > 0 else {
+    public final func subscribe(_ actionableItem: ActionableItemType) -> Cancellable {
+        guard compositeCancellable.count > 0 else {
             assertionFailure("Attempt to subscribe to \(self) before it is comitted.")
-            return Disposables.create()
+            return CompositeCancellable()
         }
 
-        subject.onNext((actionableItem, ()))
-        return compositeDisposable
+        subject.send((actionableItem, ()))
+        return compositeCancellable
     }
 
     // MARK: - Private
 
-    private let subject = PublishSubject<(ActionableItemType, ())>()
+    private let subject = PassthroughSubject<(ActionableItemType, ()), Error>()
     private var didInvokeComplete = false
 
     /// The composite disposable that contains all subscriptions including the original workflow
     /// as well as all the forked ones.
-    fileprivate let compositeDisposable = CompositeDisposable()
+    fileprivate let compositeCancellable = CompositeCancellable()
 
     fileprivate func didCompleteIfNotYet() {
         // Since a workflow may be forked to produce multiple subscribed Rx chains, we should
@@ -107,20 +107,20 @@ open class Workflow<ActionableItemType> {
 open class Step<WorkflowActionableItemType, ActionableItemType, ValueType> {
 
     private let workflow: Workflow<WorkflowActionableItemType>
-    private var observable: Observable<(ActionableItemType, ValueType)>
+    private var publisher: AnyPublisher<(ActionableItemType, ValueType), Error>
 
-    fileprivate init(workflow: Workflow<WorkflowActionableItemType>, observable: Observable<(ActionableItemType, ValueType)>) {
+    fileprivate init(workflow: Workflow<WorkflowActionableItemType>, publisher: AnyPublisher<(ActionableItemType, ValueType), Error>) {
         self.workflow = workflow
-        self.observable = observable
+        self.publisher = publisher
     }
 
     /// Executes the given closure for this step.
     ///
     /// - parameter onStep: The closure to execute for the `Step`.
     /// - returns: The next step.
-    public final func onStep<NextActionableItemType, NextValueType>(_ onStep: @escaping (ActionableItemType, ValueType) -> Observable<(NextActionableItemType, NextValueType)>) -> Step<WorkflowActionableItemType, NextActionableItemType, NextValueType> {
-        let confinedNextStep = observable
-            .flatMapLatest { (actionableItem, value) -> Observable<(Bool, ActionableItemType, ValueType)> in
+    public final func onStep<NextActionableItemType, NextValueType>(_ onStep: @escaping (ActionableItemType, ValueType) -> AnyPublisher<(NextActionableItemType, NextValueType), Error>) -> Step<WorkflowActionableItemType, NextActionableItemType, NextValueType> {
+        let confinedNextStep = publisher
+            .map { (actionableItem, value) -> AnyPublisher<(Bool, ActionableItemType, ValueType), Error> in
                 // We cannot use generic constraint here since Swift requires constraints be
                 // satisfied by concrete types, preventing using protocol as actionable type.
                 if let interactor = actionableItem as? Interactable {
@@ -129,21 +129,30 @@ open class Step<WorkflowActionableItemType, ActionableItemType, ValueType> {
                         .map({ (isActive: Bool) -> (Bool, ActionableItemType, ValueType) in
                             (isActive, actionableItem, value)
                         })
+                        .setFailureType(to: Error.self)
+                        .eraseToAnyPublisher()
                 } else {
-                    return Observable.just((true, actionableItem, value))
+                    return Just((true, actionableItem, value))
+                        .setFailureType(to: Error.self)
+                        .eraseToAnyPublisher()
                 }
             }
+            .switchToLatest()
+            .eraseToAnyPublisher()
             .filter { (isActive: Bool, _, _) -> Bool in
                 isActive
             }
-            .take(1)
-            .flatMapLatest { (_, actionableItem: ActionableItemType, value: ValueType) -> Observable<(NextActionableItemType, NextValueType)> in
+            .prefix(1)
+            .map { (_, actionableItem: ActionableItemType, value: ValueType) -> AnyPublisher<(NextActionableItemType, NextValueType), Error> in
                 onStep(actionableItem, value)
             }
-            .take(1)
+            .switchToLatest()
+            .eraseToAnyPublisher()
+            .prefix(1)
             .share()
+            .eraseToAnyPublisher()
 
-        return Step<WorkflowActionableItemType, NextActionableItemType, NextValueType>(workflow: workflow, observable: confinedNextStep)
+        return Step<WorkflowActionableItemType, NextActionableItemType, NextValueType>(workflow: workflow, publisher: confinedNextStep)
     }
 
     /// Executes the given closure when the `Step` produces an error.
@@ -151,7 +160,13 @@ open class Step<WorkflowActionableItemType, ActionableItemType, ValueType> {
     /// - parameter onError: The closure to execute when an error occurs.
     /// - returns: This step.
     public final func onError(_ onError: @escaping ((Error) -> ())) -> Step<WorkflowActionableItemType, ActionableItemType, ValueType> {
-        observable = observable.do(onError: onError)
+        publisher = publisher
+            .handleEvents(receiveCompletion: { result in
+                if case .failure(let error) = result {
+                    onError(error)
+                }
+            })
+            .eraseToAnyPublisher()
         return self
     }
 
@@ -162,23 +177,32 @@ open class Step<WorkflowActionableItemType, ActionableItemType, ValueType> {
     public final func commit() -> Workflow<WorkflowActionableItemType> {
         // Side-effects must be chained at the last observable sequence, since errors and complete
         // events can be emitted by any observables on any steps of the workflow.
-        let disposable = observable
-            .do(onError: workflow.didReceiveError, onCompleted: workflow.didCompleteIfNotYet)
-            .subscribe()
-        _ = workflow.compositeDisposable.insert(disposable)
+        let cancellable = publisher
+            .sink(receiveCompletion: { [weak self] result in
+                switch result {
+                case .finished:
+                    self?.workflow.didCompleteIfNotYet()
+                case .failure(let error):
+                    self?.workflow.didReceiveError(error)
+                }
+            }, receiveValue: { (actionableItem: ActionableItemType, value: ValueType) in
+            })
+
+        workflow.compositeCancellable.insert(cancellable)
+
         return workflow
     }
 
     /// Convert the `Workflow` into an obseravble.
     ///
     /// - returns: The observable representation of this `Workflow`.
-    public final func asObservable() -> Observable<(ActionableItemType, ValueType)> {
-        return observable
+    public final func asObservable() -> AnyPublisher<(ActionableItemType, ValueType), Error> {
+        return publisher
     }
 }
 
-/// `Workflow` related obervable extensions.
-public extension ObservableType {
+/// `Workflow` related publisher extensions.
+public extension Publisher {
 
     /// Fork the step from this obervable.
     ///
@@ -186,16 +210,16 @@ public extension ObservableType {
     /// - returns: The newly forked step in the workflow. `nil` if this observable does not conform to the required
     ///   generic type of (ActionableItemType, ValueType).
     func fork<WorkflowActionableItemType, ActionableItemType, ValueType>(_ workflow: Workflow<WorkflowActionableItemType>) -> Step<WorkflowActionableItemType, ActionableItemType, ValueType>? {
-        if let stepObservable = self as? Observable<(ActionableItemType, ValueType)> {
+        if let stepPublisher = self as? AnyPublisher<(ActionableItemType, ValueType), Error> {
             workflow.didFork()
-            return Step(workflow: workflow, observable: stepObservable)
+            return Step(workflow: workflow, publisher: stepPublisher)
         }
         return nil
     }
 }
 
-/// `Workflow` related `Disposable` extensions.
-public extension Disposable {
+/// `Workflow` related `AnyCancellable` extensions.
+public extension AnyCancellable {
 
     /// Dispose the subscription when the given `Workflow` is disposed.
     ///
@@ -207,6 +231,6 @@ public extension Disposable {
     ///
     /// - parameter workflow: The workflow to dispose the subscription with.
     func disposeWith<ActionableItemType>(worflow: Workflow<ActionableItemType>) {
-        _ = worflow.compositeDisposable.insert(self)
+        worflow.compositeCancellable.insert(self)
     }
 }
