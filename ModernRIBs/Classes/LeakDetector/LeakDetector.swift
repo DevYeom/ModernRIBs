@@ -59,13 +59,13 @@ public class LeakDetector {
     ///
     /// The status changes between InProgress and DidComplete as units register for new detections, cancel existing
     /// detections, and existing detections complete.
-    public var status: Observable<LeakDetectionStatus> {
+    public var status: AnyPublisher<LeakDetectionStatus, Never> {
         return expectationCount
-            .asObservable()
+            .removeDuplicates()
             .map { expectationCount in
                 expectationCount > 0 ? LeakDetectionStatus.InProgress : LeakDetectionStatus.DidComplete
             }
-            .distinctUntilChanged()
+            .eraseToAnyPublisher()
     }
 
     /// Sets up an expectation for the given object to be deallocated within the given time.
@@ -75,14 +75,14 @@ public class LeakDetector {
     /// - returns: The handle that can be used to cancel the expectation.
     @discardableResult
     public func expectDeallocate(object: AnyObject, inTime time: TimeInterval = LeakDefaultExpectationTime.deallocation) -> LeakDetectionHandle {
-        expectationCount.accept(expectationCount.value + 1)
+        expectationCount.send(expectationCount.value + 1)
 
         let objectDescription = String(describing: object)
         let objectId = String(ObjectIdentifier(object).hashValue) as NSString
         trackingObjects.setObject(object, forKey: objectId)
 
         let handle = LeakDetectionHandleImpl {
-            self.expectationCount.accept(self.expectationCount.value - 1)
+            self.expectationCount.send(self.expectationCount.value - 1)
         }
 
         Executor.execute(withDelay: time) {
@@ -102,7 +102,7 @@ public class LeakDetector {
                 }
             }
 
-            self.expectationCount.accept(self.expectationCount.value - 1)
+            self.expectationCount.send(self.expectationCount.value - 1)
         }
 
         return handle
@@ -115,10 +115,10 @@ public class LeakDetector {
     /// - returns: The handle that can be used to cancel the expectation.
     @discardableResult
     public func expectViewControllerDisappear(viewController: UIViewController, inTime time: TimeInterval = LeakDefaultExpectationTime.viewDisappear) -> LeakDetectionHandle {
-        expectationCount.accept(expectationCount.value + 1)
+        expectationCount.send(expectationCount.value + 1)
 
         let handle = LeakDetectionHandleImpl {
-            self.expectationCount.accept(self.expectationCount.value - 1)
+            self.expectationCount.send(self.expectationCount.value - 1)
         }
 
         Executor.execute(withDelay: time) { [weak viewController] in
@@ -138,7 +138,7 @@ public class LeakDetector {
                 }
             }
 
-            self.expectationCount.accept(self.expectationCount.value - 1)
+            self.expectationCount.send(self.expectationCount.value - 1)
         }
 
         return handle
@@ -153,14 +153,14 @@ public class LeakDetector {
         /// Reset the state of Leak Detector, internal for UI test only.
         func reset() {
             trackingObjects.removeAllObjects()
-            expectationCount.accept(0)
+            expectationCount.send(0)
         }
     #endif
 
     // MARK: - Private Interface
 
     private let trackingObjects = NSMapTable<AnyObject, AnyObject>.strongToWeakObjects()
-    private let expectationCount = BehaviorRelay<Int>(value: 0)
+    private let expectationCount = CurrentValueSubject<Int, Never>(0)
 
     lazy var disableLeakDetector: Bool = {
         if let environmentValue = ProcessInfo().environment["DISABLE_LEAK_DETECTION"] {
@@ -179,7 +179,7 @@ fileprivate class LeakDetectionHandleImpl: LeakDetectionHandle {
         return cancelledRelay.value
     }
 
-    let cancelledRelay = BehaviorRelay<Bool>(value: false)
+    let cancelledRelay = CurrentValueSubject<Bool, Never>(false)
     let cancelClosure: (() -> ())?
 
     init(cancelClosure: (() -> ())? = nil) {
@@ -187,7 +187,7 @@ fileprivate class LeakDetectionHandleImpl: LeakDetectionHandle {
     }
 
     func cancel() {
-        cancelledRelay.accept(true)
+        cancelledRelay.send(true)
         cancelClosure?()
     }
 }
