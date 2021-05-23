@@ -6,4 +6,4 @@
 [![Cocoapods Compatible](https://img.shields.io/cocoapods/v/ModernRIBs.svg)](https://cocoapods.org/pods/ModernRIBs)
 [![Swift Package Manager compatible](https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg)](https://github.com/apple/swift-package-manager)
 
-ModernRIBs is recreated by removing additional dependencies such as RxSwift and RxRelay from RIBs. Only Combine was used.
+ModernRIBs is recreated by removing additional dependencies such as RxSwift from RIBs. Only Combine was used.
