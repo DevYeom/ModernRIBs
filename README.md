@@ -6,7 +6,7 @@
 [![Cocoapods Compatible](https://img.shields.io/cocoapods/v/ModernRIBs.svg)](https://cocoapods.org/pods/ModernRIBs)
 [![Swift Package Manager compatible](https://img.shields.io/badge/Swift%20Package%20Manager-compatible-brightgreen.svg)](https://github.com/apple/swift-package-manager)
 
-ModernRIBs is recreated by removing additional dependencies such as RxSwift from [Uber's RIBs](https://github.com/uber/RIBs). Only Combine was used. All features provided by RIBs can be used identically, and it will be continuously updated according to the RIBs updated version. Therefore, the version will be matched with the RIBs. It is expected to be useful in projects that do not use RxSwift or with a minimum supported iOS 13 or later.
+ModernRIBs is recreated by removing additional dependencies such as RxSwift from [Uber's RIBs](https://github.com/uber/RIBs). Only Combine was used. All features provided by RIBs can be used identically, and it will be continuously updated according to the RIBs updated version. Therefore, the version will be matched with the RIBs. It is expected to be useful in projects that do not use RxSwift and with a minimum supported iOS 13 or later.
 
 ## Requirements
 

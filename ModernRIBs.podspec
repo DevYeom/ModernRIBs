@@ -1,10 +1,10 @@
 Pod::Spec.new do |s|
   s.name             = 'ModernRIBs'
-  s.version          = '0.0.1'
-  s.swift_version    = '5.2'
-  s.summary          = 'Without any additional dependencies, Uber\'s cross-platform mobile architecture.'
+  s.version          = '0.0.2'
+  s.swift_version    = '5.4'
+  s.summary          = 'Uber\'s RIBs with Combine.'
   s.description      = <<-DESC
-  ModernRIBs is recreated by removing additional dependencies such as RxSwift and RxRelay from RIBs. RIBs is the cross-platform architecture behind many mobile apps at Uber. This architecture framework is designed for mobile apps with a large number of engineers and nested states.
+  ModernRIBs is recreated by removing additional dependencies such as RxSwift from Uber's RIBs. Only Combine was used. All features provided by RIBs can be used identically, and it will be continuously updated according to the RIBs updated version. Therefore, the version will be matched with the RIBs. It is expected to be useful in projects that do not use RxSwift and with a minimum supported iOS 13 or later.
                        DESC
   s.homepage         = 'https://github.com/DevYeom/ModernRIBs'
   s.license          = { :type => 'Apache License, Version 2.0', :file => 'LICENSE.txt' }
