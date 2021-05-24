@@ -1,7 +1,6 @@
 //___FILEHEADER___
 
-import RIBs
-import RxSwift
+import ModernRIBs
 
 protocol ___VARIABLE_productName___Routing: ViewableRouting {
     // TODO: Declare methods the interactor can invoke to manage sub-tree via the router.

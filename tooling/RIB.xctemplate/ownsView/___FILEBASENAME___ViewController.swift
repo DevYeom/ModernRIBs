@@ -1,7 +1,6 @@
 //___FILEHEADER___
 
-import RIBs
-import RxSwift
+import ModernRIBs
 import UIKit
 
 protocol ___VARIABLE_productName___PresentableListener: AnyObject {

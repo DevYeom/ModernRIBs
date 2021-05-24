@@ -1,6 +1,6 @@
 //___FILEHEADER___
 
-import RIBs
+import ModernRIBs
 
 /// The dependencies needed from the parent scope of ___VARIABLE_productName___ to provide for the ___VARIABLE_childName___ scope.
 // TODO: Update ___VARIABLE_productName___Dependency protocol to inherit this protocol.

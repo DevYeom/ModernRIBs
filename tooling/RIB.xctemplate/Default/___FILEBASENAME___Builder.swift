@@ -1,6 +1,6 @@
 //___FILEHEADER___
 
-import RIBs
+import ModernRIBs
 
 protocol ___VARIABLE_productName___Dependency: Dependency {
     // TODO: Make sure to convert the variable into lower-camelcase.
