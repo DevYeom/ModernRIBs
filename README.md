@@ -16,11 +16,11 @@ ModernRIBs is recreated by removing additional dependencies such as RxSwift from
 
 ## Installation
 
-There are four ways to use ModernRIBs in your project:
+There are three ways to use ModernRIBs in your project:
 
-- using CocoaPods
-- using Swift Package Manager
-- manual install (build frameworks or embed Xcode Project)
+- Using CocoaPods
+- Using Swift Package Manager
+- Manual install (build frameworks or embed Xcode Project)
 
 #### CocoaPods
 
