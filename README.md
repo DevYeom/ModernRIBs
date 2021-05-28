@@ -42,7 +42,7 @@ If you're a framework author and use `ModernRIBs` as a dependency, update your `
 let package = Package(
     // ...
     dependencies: [
-        .package(url: "https://github.com/DevYeom/ModernRIBs.git", from: "0.0.1")
+        .package(url: "https://github.com/DevYeom/ModernRIBs.git", from: "1.0.0")
     ],
     // ...
 )
