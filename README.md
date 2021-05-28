@@ -48,6 +48,10 @@ let package = Package(
 )
 ```
 
+#### Tooling
+
+Run the `install-xcode.template.sh` shell script to copy the templates to the Xcode templates folder. Once you have successfully copied the templates, when adding a new file in Xcode, the ModernRIB group will show up.
+
 ## License
 
 ModernRIBs is released under the same Apache License 2.0 as Uber's RIBs. See [License.txt](https://github.com/DevYeom/ModernRIBs/blob/main/LICENSE.txt) for more information.

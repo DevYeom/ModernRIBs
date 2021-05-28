@@ -5,9 +5,9 @@
 	<key>Kind</key>
 	<string>Xcode.IDEFoundation.TextSubstitutionFileTemplateKind</string>
 	<key>Summary</key>
-	<string>RIB1</string>
+	<string>ModernRIB</string>
 	<key>Description</key>
-	<string>RIB classes.</string>
+	<string>ModernRIB classes.</string>
 	<key>SortOrder</key>
 	<string>1</string>
 	<key>AllowedTypes</key>
@@ -16,7 +16,7 @@
 		<string>public.swift-source</string>
 	</dict>
 	<key>DefaultCompletionName</key>
-	<string>RIB</string>
+	<string>ModernRIB</string>
 	<key>MainTemplateFiles</key>
 	<string>___FILEBASENAME___.swift</string>
 	<key>Platforms</key>
