@@ -12,12 +12,14 @@ let package = Package(
     targets: [
         .target(
             name: "ModernRIBs",
-            path: "ModernRIBs"
+            path: "ModernRIBs",
+            exclude: ["Info.plist"]
         ),
         .testTarget(
             name: "ModernRIBsTests",
             dependencies: ["ModernRIBs"],
-            path: "ModernRIBsTests"
+            path: "ModernRIBsTests",
+            exclude: ["Info.plist"]
         ),
     ]
 )
