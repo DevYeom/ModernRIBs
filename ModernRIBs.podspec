@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name             = 'ModernRIBs'
-  s.version          = '1.0.0'
+  s.version          = '1.0.1'
   s.swift_version    = '5.4'
   s.summary          = 'Uber\'s RIBs with Combine.'
   s.description      = <<-DESC
